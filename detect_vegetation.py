@@ -25,8 +25,8 @@ def extract_vegetation_mask(img):
     """
 
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    img_hue = hsv[:,:,0]
-    hist, bins = np.histogram(img_hue, bins=180, range=(0,180))
+    hue, sat, val = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+    hist, bins = np.histogram(hue, bins=180, range=(0,180))
     dominant_hue_index = np.argmax(hist)
     print("dominant hue:", dominant_hue_index)
 
@@ -37,19 +37,31 @@ def extract_vegetation_mask(img):
     plt.show()
 
     margin = 25
-    hue_mask = (img_hue >= (dominant_hue_index - margin)) & (img_hue <= (dominant_hue_index + margin))
+    hue_mask = (hue >= (dominant_hue_index - margin)) & (hue <= (dominant_hue_index + margin))
+    val_mask = val < 45
+    mask = hue_mask | val_mask
     result = np.zeros_like(img)
-    result[hue_mask] = img[hue_mask]
+    result[mask] = img[mask]
 
 
     img_resized = resize_img_to_screen(result)
-    cv2.imshow("image:", img_resized)
+    cv2.imshow("filtered:", img_resized)
     cv2.waitKey()
 
-    _, mask = cv2.threshold(result, 1, 255, cv2.THRESH_BINARY)
-    cv2.imshow("image:", resize_img_to_screen(mask))
+    gray = cv2.cvtColor(result, cv2.COLOR_BGR2GRAY)
+    _, mask = cv2.threshold(gray, 1, 255, cv2.THRESH_BINARY)
+    cv2.imshow("result:", resize_img_to_screen(mask))
     cv2.waitKey()
 
+    # reduce noise with open + close operations
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,3))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9,9))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=1)
+    cv2.imshow("after morph:", resize_img_to_screen(mask))
+    cv2.waitKey()
+
+    return mask
 
 
 def extract_features_mask(img):
@@ -66,7 +78,9 @@ def extract_features_mask(img):
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13,13))
     # opening = cv2.morphologyEx(otsu, cv2.MORPH_OPEN, kernel)
     detected = cv2.morphologyEx(otsu, cv2.MORPH_CLOSE, kernel)
-    cv2.imshow("otsu:", resize_img_to_screen(detected))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (9,9))
+    detected = cv2.morphologyEx(detected, cv2.MORPH_OPEN, kernel)
+    cv2.imshow("after morph:", resize_img_to_screen(detected))
     cv2.waitKey()
 
     # mask is 0/255 binary
@@ -74,7 +88,8 @@ def extract_features_mask(img):
     coords = np.vstack((xs, ys)).T
 
     # choose eps based on desired connectivity (pixel distance)
-    db = DBSCAN(eps=19, min_samples=100).fit(coords)
+    print("running clustering to find forest patches...")
+    db = DBSCAN(eps=21, min_samples=100).fit(coords)
     labels = db.labels_
 
     # generate cluster mask
@@ -85,6 +100,7 @@ def extract_features_mask(img):
 
     # create 3-channel color image
     vis_color = np.zeros((labels.shape[0], labels.shape[1], 3), dtype=np.uint8)
+    forest_mask = np.zeros((labels.shape[0], labels.shape[1]), dtype=np.uint8)
 
     # assign random color per label
     for lab in unique_labels:
@@ -103,10 +119,18 @@ def extract_features_mask(img):
 
         # --- write closed cluster into color visualization ---
         vis_color[cluster_closed > 0] = color
+        forest_mask[cluster_closed > 0] = 255
 
     # display
     cv2.imshow("clusters", vis_color)
     cv2.waitKey(0)
+
+    detected_resized = resize_img_to_screen(detected)
+    forest_and_isolated_trees = cv2.bitwise_or(detected_resized, forest_mask)
+    cv2.imshow("forest and isolated trees", forest_and_isolated_trees)
+    cv2.waitKey(0)
+    
+    return forest_and_isolated_trees
     
     # cv2.imwrite("output.png", resize_img_to_screen(detected))
 
@@ -114,9 +138,16 @@ def extract_features_mask(img):
 if __name__ == "__main__":
     
     print("reading image...")
-    img = cv2.imread("orthophotos/hongrin1.tif")
+    img = cv2.imread("orthophotos/hongrin2.tif")
     print("shape:", img.shape)
     print("dtype:", img.dtype)
 
-    # extract_vegetation_mask(img)
-    extract_features_mask(img)
+    vegetation_mask = extract_vegetation_mask(img)
+    vegetation_mask = resize_img_to_screen(vegetation_mask)
+
+    forest_features = extract_features_mask(img)
+    print(vegetation_mask.shape, forest_features.shape)
+    final_detection = cv2.bitwise_and(forest_features, forest_features, mask=vegetation_mask)
+    
+    cv2.imshow("combination", final_detection)
+    cv2.waitKey()
