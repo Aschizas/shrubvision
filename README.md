@@ -39,3 +39,6 @@ deactivate
     -> create polygon
     -> extract image of whats in the polygon
 5. move bombina variegata code to repo
+
+
+# 2010 - 2015- 2025
