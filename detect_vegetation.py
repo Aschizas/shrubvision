@@ -1,20 +1,54 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import rasterio
+import os
 import pyautogui
+import rasterio
+import re
+from collections import defaultdict
 from sklearn.cluster import DBSCAN
 from scipy.signal import find_peaks
 
+def find_image_pairs(folder: str):
+    """
+    Scans a folder and returns a list of tuples:
+        (img1_path, img2_path, output_filename)
+    where matching swissimage files differ only by year.
+    """
+    # Regex: captures prefix, year, and suffix parts of filename
+    pattern = re.compile(r"(swissimage-dop10_) (\d{4}) _(.+)", re.VERBOSE)
 
-import rasterio
-import numpy as np
+    # Get all image files
+    files = [f for f in os.listdir(folder) if f.lower().endswith(('.tif', '.tiff', '.png', '.jpg', '.jpeg'))]
 
-import rasterio
-import numpy as np
+    groups = defaultdict(list)
 
-import rasterio
-import numpy as np
+    for filename in files:
+        match = pattern.match(filename)
+        if match:
+            prefix, year, suffix = match.groups()
+            base_key = f"{prefix}{suffix}"
+            groups[base_key].append((filename, year))
+
+    pairs = []
+
+    for base, entries in groups.items():
+        if len(entries) >= 2:
+            # Sort by year
+            entries.sort(key=lambda x: x[1])
+            for i in range(len(entries) - 1):
+                for j in range(i + 1, len(entries)):
+                    file1, year1 = entries[i]
+                    file2, year2 = entries[j]
+                    suffix = base.split('_', 1)[1] if '_' in base else base
+                    output_name = f"output_{year1}_{year2}_{suffix}"
+                    pairs.append((
+                        os.path.join(folder, file1),
+                        os.path.join(folder, file2),
+                        output_name
+                    ))
+
+    return pairs
 
 def save_comparison_as_geotiff(input_tif_path, img, output_tif_path):
     # Make sure the image is uint8
@@ -273,9 +307,10 @@ def extract_features_mask(img, plot:bool = False):
     
     # cv2.imwrite("output.png", downsize_img_to_screen(detected))
 
-def full_detection_pipeline(img):
+def full_detection_pipeline(img, roi_enabled=False, plot=False):
 
-    img = select_roi(img)
+    if roi_enabled:
+        img = select_roi(img)
     # extract_shadows(img)
     vegetation_mask = extract_vegetation_mask(img)
     vegetation_mask, _ = downsize_img_to_screen(vegetation_mask)
@@ -283,9 +318,10 @@ def full_detection_pipeline(img):
     forest_features = extract_features_mask(img)
     final_detection = cv2.bitwise_and(forest_features, forest_features, mask=vegetation_mask)
     
-    cv2.imshow("combination", final_detection)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    if plot:
+        cv2.imshow("combination", final_detection)
+        cv2.waitKey()
+        cv2.destroyAllWindows()
 
     return final_detection
 
@@ -315,18 +351,29 @@ def compare_vegetation_evolution(mask1, mask2):
     return comparison
     
 
-if __name__ == "__main__":
-    
+def main(img1_path, img2_path, output_path):
 
-    print("reading image...")
-    img = cv2.imread("orthophotos/hongrin1.tif")
-    print(img.shape)
-    mask1 = full_detection_pipeline(img)
+    print("reading images...")
+    img1 = cv2.imread(img1_path)
+    img2 = cv2.imread(img2_path)
 
-    img = cv2.imread("orthophotos/hongrin2.tif")
-    mask2 = full_detection_pipeline(img)
+    assert img1.shape == img2.shape, "Images have different sizes"
+    mask1 = full_detection_pipeline(img1)
+    mask2 = full_detection_pipeline(img2)
 
     comparison_result = compare_vegetation_evolution(mask1, mask2)
-    w,h = img.shape[:2]
+    w,h = img1.shape[:2]
     comparison_result = cv2.resize(comparison_result, (w,h))
-    save_comparison_as_geotiff("orthophotos/hongrin1.tif", comparison_result, "output.tif")
+    save_comparison_as_geotiff(img1_path, comparison_result, output_path)
+
+if __name__ == "__main__":
+    
+    img1_path = "orthophotos/hongrin1.tif" 
+    img2_path = "orthophotos/hongrin2.tif" 
+    output_path = "output/output.tif"
+    # main(img1_path, img2_path, output_path)
+    pairs = find_image_pairs("orthophotos")
+    print(pairs)
+    
+    for img1, img2, output_name in pairs:
+        main(img1, img2, f"output/{output_name}")
