@@ -52,3 +52,11 @@ deactivate
 
 # TODO DAY 6
 boxplot % variation for each milieu
+
+# TODO DAY 7
+boxplots for each interesting milieu, sorted by total area of milieu. show area milieu and area embroussaillement.
+violin plots, sea stack plots
+
+# TODO DAY 8
+Integrate script in qgis. Start from stat layers and work backwards to generate the stats from a python script
+Look into creating a Jupyter notebook for the image processing stuff
