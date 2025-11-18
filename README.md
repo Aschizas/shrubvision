@@ -42,3 +42,13 @@ deactivate
 
 
 # 2010 - 2015- 2025
+
+# TODO DAY 3:
+1. try to find sat images (copernicus vhr?)
+2. search what lidar data are available ()
+
+# TODO DAY 5
+1. apply forest location 2012 as a mask (clean up the mask?)
+
+# TODO DAY 6
+boxplot % variation for each milieu
