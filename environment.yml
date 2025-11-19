@@ -1,0 +1,19 @@
+name: shrubvision-binder
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - matplotlib
+  - geopandas
+  - rasterio
+  - fiona
+  - opencv
+  - pip
+  - pip:
+      - jupyterlab
+      - ipywidgets
+      - notebook
+      - qgis
