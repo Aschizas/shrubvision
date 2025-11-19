@@ -2,3 +2,4 @@
 venv/
 orthophotos/
 output/
+__pycache__
