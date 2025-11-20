@@ -8,6 +8,7 @@ import seaborn as sns # Used for both plots
 # --- Configuration ---
 MILIEUX = [21, 221, 222, 223, 231, 41, 422, 424, 431, 432, 433, 451, 452, 453, 454]
 gpkg_path = r"C:\Users\Admin\Desktop\embroussaillement_hongrin\stats_05m_full.gpkg"
+gpkg_path = r"C:\Users\Admin\Desktop\test.gpkg"
 
 # --- Dynamic Area Formatting Function ---
 def format_area_dynamic(area_sq_m):
@@ -32,8 +33,8 @@ milieux_critiques = gdf[gdf["TypoCH_NUM"].isin(MILIEUX)]
 
 # Aggregate both '_count' (total area proxy) and '_sum' (embroussaillement area)
 grouped_stats = milieux_critiques.groupby("TypoCH_NUM").agg(
-    Total_Count=('_count', 'sum'),
-    Total_Embroussaillement=('_sum', 'sum')
+    Total_Count=('embrouss_count', 'sum'),
+    Total_Embroussaillement=('embrouss_sum', 'sum')
 ).reset_index()
 
 # Use Total_Count for sorting
@@ -54,7 +55,7 @@ fig, ax = plt.subplots(figsize=(12, 6))
 sns.boxplot(
     data=milieux_critiques_stats,
     x="TypoCH_NUM",
-    y="_mean",
+    y="embrouss_mean",
     order=plot_order, # Use the defined sort order
     showfliers=False, # Hide outliers, matching previous plot
     ax=ax
@@ -134,7 +135,7 @@ plt.figure(figsize=(12, 6))
 sns.violinplot(
     data=milieux_critiques_stats,
     x="TypoCH_NUM",
-    y="_mean",
+    y="embrouss_mean",
     order=plot_order,
     inner='quartile', 
     palette="pastel"
