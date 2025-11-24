@@ -1,62 +1,40 @@
 # shrubvision
-Estimate tree/shrub evolution using CV on aerial photos
+Small project to compute woody plant encroachment (embroussaillement) and analyze its evolution over time.
 
-# activate venv
-.\venv\Scripts\activate 
+## Overview
+The goal of this project was to monitor how woody plants (trees and shrubs) expand into grassy ecosystems. This data can be useful to highligh vulnerable regions where the expansion of woody plants could have negative effects on biodiversity.
 
-# install libs while in venv, save reqs with pip freeze > requirements.txt
-deactivate
+You can find the scripts needed in /scripts_embroussaillement. These scripts are based on the [Vegetation Height Model NFI for Switzerland](https://www.envidat.ch/dataset/vegetation-height-model-nfi) data.
+The full pipeline consists of 3 scripts: \
+compute_embroussaillement.py \
+stats_embroussaillement_milieux.py \
+plot_stats_embroussaillement.py \
 
-
-# TODO GENERAL: 
-
-1. combine vegetation (hue) and feature (otsu thresholding) masks in intelligent order
-5. adapt and tune parameters, if possible make them dependent of image size
-1. create roi-selector tool
-2. create more robust hue detector: mix finding local maxima with expected green hue (problem to solve: detecting lake)
-3. clean-up code, have full pipeline to run on roi and output vegetation detected
-4. start investigating how to extract part of an image from qgis: 
-    -> create polygon
-    -> extract image of whats in the polygon
-5. move bombina variegata code to repo
-6. experiment with other vegetation indexes (not just hues)
+The first script computes the encroachment / embroussaillement between two sets of vegetation height data for different years. Note that in our case, the data was cropped manually to the region that interested us. \
+The second script computes statistics of the encroachment / embroussaillement using a map of each existing natural environment. This script also exists as a QGIS-compatible version, that can be launched directly in QGIS. \
+The third scripts creates plots for these statistics (boxplots and violinplot)
 
 
+The /other_scripts folder contains experiments with other sets of data, such as a computer-vision based approach on aerial images, or the NDVI from satellite data (sentinel-2)
+
+## How to use
+Install dependencies: it is recommended to do this in a virtual environment.\
+`python -m venv .venv` 
+
+Activate the virtual environment: \
+`.\venv\Scripts\activate`
+
+Install the dependencies \
+`pip install -r requirements.txt`
+
+Run the first script: 
+`python .\compute_embroussaillement.py --old "path_to_old_data"  --old "path_to_new_data" --output "path_to_output_folder"`
+
+Run the second script: 
+`python .\stats_embroussaillement_milieux.py "path_to_embroussaillement_file"  "path_to_milieux_file" "path_to_region_of_interest_file" -o "path_to_output_folder"`
+
+Run the third script: 
+`python .\plot_stats_embroussaillement.py "path_to_statistics_file"`
 
 
-# TODO DAY 1:
-1. extract forest only -> otsu, clustering, closing.
-2. extract individual trees, combine with previous
-3. create mask for only green hues
-4. combine masks in intelligent order
-5. adapt and tune parameters, if possible make them dependent of image size
 
-# TODO DAY 2:
-1. create roi-selector tool
-2. create more robust hue detector: mix finding local maxima with expected green hue (problem to solve: detecting lake)
-3. clean-up code, have full pipeline to run on roi and output vegetation detected
-4. start investigating how to extract part of an image from qgis: 
-    -> create polygon
-    -> extract image of whats in the polygon
-5. move bombina variegata code to repo
-
-
-# 2010 - 2015- 2025
-
-# TODO DAY 3:
-1. try to find sat images (copernicus vhr?)
-2. search what lidar data are available ()
-
-# TODO DAY 5
-1. apply forest location 2012 as a mask (clean up the mask?)
-
-# TODO DAY 6
-boxplot % variation for each milieu
-
-# TODO DAY 7
-boxplots for each interesting milieu, sorted by total area of milieu. show area milieu and area embroussaillement.
-violin plots, sea stack plots
-
-# TODO DAY 8
-Integrate script in qgis. Start from stat layers and work backwards to generate the stats from a python script
-Look into creating a Jupyter notebook for the image processing stuff

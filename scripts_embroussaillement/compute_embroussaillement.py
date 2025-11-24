@@ -2,6 +2,7 @@ import argparse
 import rasterio
 import numpy as np
 import matplotlib.pyplot as plt
+import os
 from scipy.ndimage import binary_opening, binary_closing, grey_opening, grey_closing
 
 
@@ -112,6 +113,9 @@ def compute_difference_map_raw(old_path, new_path, output_path, min_height, max_
 if __name__ == "__main__":
 
     args = parse_args()
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+        print(f"Created output directory: {args.output}")
 
     print("Computing mask of where forest > 3m in old data...")
     forest_mask_path = f"{args.output}/mask_forest.tif"
@@ -144,3 +148,4 @@ if __name__ == "__main__":
     h_diff_no_forest_cleaned = grey_closing(h_diff_no_forest, structure=circular_kernel(2))
     h_diff_no_forest_cleaned = grey_opening(h_diff_no_forest_cleaned, structure=circular_kernel(2))
     export_image(h_diff_no_forest_cleaned, meta, diff_no_forest_path_cleaned)
+    print("Final result stored in", diff_no_forest_path_cleaned)

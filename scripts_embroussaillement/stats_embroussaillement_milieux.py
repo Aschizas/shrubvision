@@ -33,7 +33,7 @@ def process_geospatial_data(embrouss_path, milieux_path, region_path, output_dir
         return
 
     # 3. Raster Calculator: Create Mask (embrouss > 0.5)
-    mask_output_path = os.path.join(output_dir, "embroussaillement_mask.tif")
+    mask_output_path = os.path.join(output_dir, "embroussaillement_mask_05m.tif")
     
     with rasterio.open(embrouss_path) as src:
         embrouss_array = src.read(1)

@@ -1,3 +1,4 @@
+import argparse
 import geopandas as gpd
 import fiona
 import matplotlib.pyplot as plt
@@ -7,8 +8,6 @@ import seaborn as sns # Used for both plots
 
 # --- Configuration ---
 MILIEUX = [21, 221, 222, 223, 231, 41, 422, 424, 431, 432, 433, 451, 452, 453, 454]
-gpkg_path = r"C:\Users\Admin\Desktop\embroussaillement_hongrin\stats_05m_full.gpkg"
-gpkg_path = r"C:\Users\Admin\Desktop\test.gpkg"
 
 # --- Dynamic Area Formatting Function ---
 def format_area_dynamic(area_sq_m):
@@ -23,12 +22,19 @@ def format_area_dynamic(area_sq_m):
 # ----------------------------------------------------------------------
 # --- Part 1: Load Data and Calculate Sorting Metric (Total Count/Sum) ---
 # ----------------------------------------------------------------------
+parser = argparse.ArgumentParser(description="Plot les statistiques de l'embroussaillement par milieux.")
+parser.add_argument(
+    "path_stats_layer", 
+    type=str, 
+    help="Chemin vers la couche vectorielle contenant les statistiques de l'embroussaillement par milieux."
+)
+args = parser.parse_args()
 
-layers = fiona.listlayers(gpkg_path)
+layers = fiona.listlayers(args.path_stats_layer)
 layer_name = layers[0]
-print(f"\nLoading layer: {layer_name} from {gpkg_path}")
+print(f"\nLoading layer: {layer_name} from {args.path_stats_layer}")
 
-gdf = gpd.read_file(gpkg_path, layer=layer_name)
+gdf = gpd.read_file(args.path_stats_layer, layer=layer_name)
 milieux_critiques = gdf[gdf["TypoCH_NUM"].isin(MILIEUX)]
 
 # Aggregate both '_count' (total area proxy) and '_sum' (embroussaillement area)
