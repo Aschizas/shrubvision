@@ -8,7 +8,7 @@ You can find the scripts needed in /scripts_embroussaillement. These scripts are
 The full pipeline consists of 3 scripts: \
 compute_embroussaillement.py \
 stats_embroussaillement_milieux.py \
-plot_stats_embroussaillement.py \
+plot_stats_embroussaillement.py 
 
 The first script computes the encroachment / embroussaillement between two sets of vegetation height data for different years. Note that in our case, the data was cropped manually to the region that interested us. \
 The second script computes statistics of the encroachment / embroussaillement using a map of each existing natural environment. This script also exists as a QGIS-compatible version, that can be launched directly in QGIS. \
@@ -18,6 +18,15 @@ The third scripts creates plots for these statistics (boxplots and violinplot)
 The /other_scripts folder contains experiments with other sets of data, such as a computer-vision based approach on aerial images, or the NDVI from satellite data (sentinel-2)
 
 ## How to use
+### Download the repository or the scripts you want:
+You can clone the whole repository: install git, then \
+`git clone ://github.com/Aschizas/shrubvision.git` \
+in the desired folder. \
+You can also download the whole repository from the main page as a .zip file. 
+
+Finally you can also simply download the scripts you want to use in /scripts_embroussaillement, as well as requirements.txt
+
+### Run the scripts
 Install dependencies: it is recommended to do this in a virtual environment.\
 `python -m venv .venv` 
 
