@@ -37,7 +37,7 @@ Install the dependencies \
 `pip install -r requirements.txt`
 
 Run the first script: 
-`python .\compute_embroussaillement.py --old "path_to_old_data"  --old "path_to_new_data" --output "path_to_output_folder"`
+`python .\compute_embroussaillement.py --old "path_to_old_data"  --new "path_to_new_data" --output "path_to_output_folder"`
 
 Run the second script: 
 `python .\stats_embroussaillement_milieux.py "path_to_embroussaillement_file"  "path_to_milieux_file" "path_to_region_of_interest_file" -o "path_to_output_folder"`
